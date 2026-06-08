@@ -7,7 +7,8 @@ data class User(
     val email: String,
     @SerializedName("first_name") val firstName: String?,
     @SerializedName("last_name") val lastName: String?,
-    @SerializedName("is_staff") val isStaff: Boolean
+    @SerializedName("is_staff") val isStaff: Boolean,
+    val rol: String? = "client"
 )
 
 data class UserProfile(
@@ -30,7 +31,9 @@ data class LoginRequest(
 data class RegisterRequest(
     val username: String,
     val email: String,
+    val nombre: String,
     val password: String,
+    @SerializedName("password2") val passwordConfirm: String,
     val telefono: String? = null,
     val rol: String = "client"
 )

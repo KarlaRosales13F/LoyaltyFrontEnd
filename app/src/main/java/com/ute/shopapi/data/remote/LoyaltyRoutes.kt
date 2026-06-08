@@ -6,44 +6,47 @@ import retrofit2.http.*
 import retrofit2.http.Url
 
 interface UserRoutes {
-    @GET("api/users/me/")
+    @GET("users/me/")
     suspend fun getProfile(): Response<User>
 }
 
 interface ComprasRoutes {
-    @GET("api/compras/")
+    @GET("compras/")
     suspend fun getCompras(): Response<PaginatedResponse<Compra>>
 
     @GET
     suspend fun getComprasPage(@Url url: String): Response<PaginatedResponse<Compra>>
 
-    @POST("api/compras/")
+    @POST("compras/")
     suspend fun createCompra(@Body request: CompraRequest): Response<Compra>
 }
 
 interface PuntosRoutes {
-    @GET("api/puntos/{id}/")
+    @GET("puntos/")
+    suspend fun getPuntosList(): Response<PaginatedResponse<PuntosFidelizacion>>
+
+    @GET("puntos/{id}/")
     suspend fun getPuntos(@Path("id") userId: Int): Response<PuntosFidelizacion>
 
-    @PUT("api/puntos/acumular/")
-    suspend fun acumularPuntos(): Response<PuntosFidelizacion>
+    @PUT("puntos/acumular/")
+    suspend fun acumularPuntos(@Body request: AcumularPuntosRequest): Response<PuntosFidelizacion>
 }
 
 interface RecompensasRoutes {
-    @GET("api/recompensas/")
+    @GET("recompensas/")
     suspend fun getRecompensas(): Response<PaginatedResponse<Recompensa>>
 
     @GET
     suspend fun getRecompensasPage(@Url url: String): Response<PaginatedResponse<Recompensa>>
 
-    @POST("api/recompensas/")
+    @POST("recompensas/")
     suspend fun createRecompensa(@Body recompensa: Recompensa): Response<Recompensa>
 
-    @PATCH("api/recompensas/{id}/")
+    @PATCH("recompensas/{id}/")
     suspend fun updateRecompensa(@Path("id") id: Int, @Body recompensa: PartialRecompensa): Response<Recompensa>
 
-    @POST("api/recompensas/canjear/")
-    suspend fun canjearRecompensa(@Body request: CanjeRequest): Response<Unit>
+    @POST("recompensas/canjear/")
+    suspend fun canjearRecompensa(@Body request: CanjeRequest): Response<CanjeResponse>
 }
 
 data class PartialRecompensa(
@@ -52,17 +55,17 @@ data class PartialRecompensa(
 )
 
 interface ProductosRoutes {
-    @GET("api/productos/")
+    @GET("productos/")
     suspend fun getProductos(): Response<PaginatedResponse<Producto>>
 
-    @POST("api/productos/")
+    @POST("productos/")
     suspend fun createProducto(@Body producto: ProductoRequest): Response<Producto>
 }
 
 interface DevolucionesRoutes {
-    @GET("api/devoluciones/")
+    @GET("devoluciones/")
     suspend fun getDevoluciones(): Response<PaginatedResponse<Devolucion>>
 
-    @PATCH("api/devoluciones/{id}/")
+    @PATCH("devoluciones/{id}/")
     suspend fun updateDevolucion(@Path("id") id: Int, @Body request: DevolucionUpdateRequest): Response<Devolucion>
 }

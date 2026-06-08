@@ -15,6 +15,7 @@ class MainActivity : ComponentActivity() {
     private val puntosController: PuntosController by viewModels()
     private val recompensasController: RecompensasController by viewModels()
     private val adminController: AdminController by viewModels()
+    private val cartController: CartController by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -27,6 +28,7 @@ class MainActivity : ComponentActivity() {
                     puntosController = puntosController,
                     recompensasController = recompensasController,
                     adminController = adminController,
+                    cartController = cartController
                 )
             }
         }

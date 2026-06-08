@@ -1,41 +1,53 @@
 package com.ute.shopapi.ui.screens
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.AddShoppingCart
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.ute.shopapi.data.controller.AdminController
-import com.ute.shopapi.data.controller.ComprasController
-import com.ute.shopapi.data.model.CompraRequest
-import com.ute.shopapi.data.model.Recompensa
+import com.ute.shopapi.data.controller.*
+import com.ute.shopapi.data.model.Producto
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TiendaScreen(
     onNavigateBack: () -> Unit,
-    adminController: AdminController,
-    comprasController: ComprasController
+    onNavigateToCart: () -> Unit,
+    cartController: CartController,
 ) {
-    val recompensas by adminController.recompensas.collectAsState()
-    val pagination by adminController.pagination.collectAsState()
-    val isLoading by adminController.isLoading.collectAsState()
+    // Local list of sports products for the "Store" experience
+    val productosSports = listOf(
+        Producto(1, "Zapatos de Running", "Amortiguación premium para asfalto", 120.0),
+        Producto(2, "Camiseta NIKE", "Tejido transpirable Dry-Fit", 35.0),
+        Producto(3, "Pantalones Cortos", "Flexibilidad total para tus rutinas", 25.0),
+        Producto(4, "Gorra Performance", "Protección solar y estilo", 18.0),
+        Producto(5, "Bolso de Gimnasio", "Espacio amplio para todo tu equipo", 55.0),
+        Producto(6, "Calzas de Compresión", "Mejora tu circulación al entrenar", 45.0)
+    )
 
-    LaunchedEffect(Unit) {
-        adminController.fetchRecompensas()
-    }
+    val cartItems by cartController.items.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
 
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             CenterAlignedTopAppBar(
                 title = { Text("TIENDA DEPORTIVA", fontWeight = FontWeight.Black) },
@@ -45,59 +57,44 @@ fun TiendaScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = { adminController.fetchRecompensas() }) {
-                        Icon(Icons.Default.Refresh, contentDescription = "Refrescar")
+                    BadgedBox(
+                        badge = {
+                            if (cartItems.isNotEmpty()) {
+                                Badge { Text(cartItems.sumOf { it.quantity }.toString()) }
+                            }
+                        }
+                    ) {
+                        IconButton(onClick = onNavigateToCart) {
+                            Icon(Icons.Default.ShoppingCart, contentDescription = "Carrito", tint = MaterialTheme.colorScheme.primary)
+                        }
                     }
                 }
             )
         }
     ) { padding ->
-        Column(modifier = Modifier.padding(padding)) {
-            if (isLoading && recompensas.isEmpty()) {
-                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator()
-                }
-            } else {
-                LazyVerticalGrid(
-                    columns = GridCells.Fixed(2),
-                    modifier = Modifier.weight(1f).padding(8.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    if (recompensas.isEmpty()) {
-                        item {
-                            Text("La tienda está vacía.", modifier = Modifier.padding(16.dp))
+        Column(modifier = Modifier.fillMaxSize().padding(padding)) {
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(2),
+                modifier = Modifier.weight(1f).padding(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                items(productosSports) { producto ->
+                    ProductoStoreCard(producto) {
+                        // Convert Producto to Recompensa format for the shared CartController logic
+                        // We reuse the cart logic for simplicity
+                        val simulatedRecompensa = com.ute.shopapi.data.model.Recompensa(
+                            id = producto.id,
+                            nombre = producto.nombre,
+                            descripcion = producto.descripcion,
+                            puntosNecesarios = producto.precio.toInt(), // Simulating pts as price for the cart
+                            stock = producto.stock,
+                            estado = "activo"
+                        )
+                        cartController.addToCart(simulatedRecompensa)
+                        scope.launch {
+                            snackbarHostState.showSnackbar("Añadido: ${producto.nombre}")
                         }
-                    }
-                    items(recompensas) { recompensa ->
-                        RecompensaCard(recompensa) {
-                            comprasController.createCompra(CompraRequest(metodoPago = "Tarjeta", total = 100.0))
-                        }
-                    }
-                }
-
-                // Pagination Row
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(16.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    TextButton(
-                        onClick = { pagination?.previous?.let { adminController.fetchRecompensas(it) } },
-                        enabled = pagination?.previous != null && !isLoading
-                    ) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
-                        Text("ATRÁS")
-                    }
-
-                    Text("Pág ${pagination?.page ?: 1}", style = MaterialTheme.typography.labelLarge)
-
-                    TextButton(
-                        onClick = { pagination?.next?.let { adminController.fetchRecompensas(it) } },
-                        enabled = pagination?.next != null && !isLoading
-                    ) {
-                        Text("MÁS")
-                        Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null)
                     }
                 }
             }
@@ -106,26 +103,40 @@ fun TiendaScreen(
 }
 
 @Composable
-fun RecompensaCard(recompensa: Recompensa, onBuy: () -> Unit) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+fun ProductoStoreCard(producto: Producto, onAddToCart: () -> Unit) {
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onAddToCart() },
+        color = MaterialTheme.colorScheme.surface,
+        shape = RoundedCornerShape(20.dp),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+        shadowElevation = 2.dp
     ) {
-        Column(modifier = Modifier.padding(12.dp)) {
-            Text(recompensa.nombre, fontWeight = FontWeight.Bold, maxLines = 1)
-            Text(recompensa.descripcion ?: "", style = MaterialTheme.typography.bodySmall, maxLines = 2)
-            Spacer(modifier = Modifier.height(8.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+        Column(modifier = Modifier.padding(16.dp)) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(100.dp)
+                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.05f), RoundedCornerShape(12.dp)),
+                contentAlignment = Alignment.Center
             ) {
-                Text("${recompensa.puntosNecesarios} PTS", fontWeight = FontWeight.ExtraBold, color = MaterialTheme.colorScheme.primary)
-                IconButton(onClick = onBuy) {
-                    Icon(Icons.Default.AddShoppingCart, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                Icon(Icons.Default.ShoppingCart, contentDescription = null, tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f), modifier = Modifier.size(40.dp))
+            }
+            
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(producto.nombre, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.bodyMedium, maxLines = 1)
+            Text("$${producto.precio}", fontWeight = FontWeight.Black, color = MaterialTheme.colorScheme.primary)
+            
+            Spacer(modifier = Modifier.height(8.dp))
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                IconButton(
+                    onClick = onAddToCart,
+                    modifier = Modifier.size(32.dp).background(MaterialTheme.colorScheme.primary, CircleShape)
+                ) {
+                    Icon(Icons.Default.AddShoppingCart, contentDescription = null, tint = Color.White, modifier = Modifier.size(16.dp))
                 }
             }
-            Text("STOCK: ${recompensa.stock}", style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.Bold)
         }
     }
 }

@@ -15,10 +15,17 @@ data class CanjeRequest(
     @SerializedName("recompensa_id") val recompensaId: Int
 )
 
+data class CanjeResponse(
+    val message: String,
+    val recompensa: Recompensa,
+    @SerializedName("fidelizacion") val puntosActualizados: PuntosFidelizacion
+)
+
 data class PuntosFidelizacion(
     val id: Int,
     @SerializedName("puntos_acumulados") val puntosAcumulados: Int,
     @SerializedName("puntos_usados") val puntosUsados: Int,
-    @SerializedName("nivel_actual") val nivelActual: String?,
+    @SerializedName("puntos_disponibles") val puntosDisponibles: Int,
+    @SerializedName("nivel_cliente") val nivelCliente: String?,
     @SerializedName("ultima_actualizacion") val ultimaActualizacion: String?
 )

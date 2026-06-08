@@ -10,15 +10,15 @@ import retrofit2.http.GET
 import retrofit2.http.POST
 
 interface AuthRoutes {
-    @POST("api/auth/login/")
+    @POST("auth/login/")
     suspend fun login(@Body request: LoginRequest): Response<AuthResponse>
 
-    @POST("api/auth/register/")
+    @POST("auth/register/")
     suspend fun register(@Body request: RegisterRequest): Response<AuthResponse>
 
-    @POST("api/auth/logout/")
+    @POST("auth/logout/")
     suspend fun logout(): Response<Unit>
 
-    @GET("api/users/me/")
+    @GET("users/me/")
     suspend fun getMe(): Response<User>
 }

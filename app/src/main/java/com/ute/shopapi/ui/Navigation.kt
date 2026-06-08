@@ -14,6 +14,7 @@ fun AppNavigation(
     puntosController: PuntosController,
     recompensasController: RecompensasController,
     adminController: AdminController,
+    cartController: CartController,
 ) {
     val navController = rememberNavController()
 
@@ -39,15 +40,33 @@ fun AppNavigation(
                 onNavigateToAdmin = { navController.navigate("admin") },
                 onNavigateToTienda = { navController.navigate("tienda") },
                 onNavigateToPerfil = { navController.navigate("perfil") },
+                onNavigateToOfertas = { navController.navigate("ofertas") },
                 authController = authController,
-                puntosController = puntosController
+                puntosController = puntosController,
+                comprasController = comprasController
+            )
+        }
+        composable("ofertas") {
+            OfertasScreen(
+                onNavigateBack = { navController.popBackStack() },
+                adminController = adminController
             )
         }
         composable("tienda") {
             TiendaScreen(
                 onNavigateBack = { navController.popBackStack() },
-                adminController = adminController,
-                comprasController = comprasController
+                onNavigateToCart = { navController.navigate("cart") },
+                cartController = cartController
+            )
+        }
+        composable("cart") {
+            CartScreen(
+                onNavigateBack = { navController.popBackStack() },
+                onNavigateToHome = { navController.navigate("home") { popUpTo("home") { inclusive = true } } },
+                cartController = cartController,
+                comprasController = comprasController,
+                puntosController = puntosController,
+                authController = authController
             )
         }
         composable("perfil") {

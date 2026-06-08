@@ -5,7 +5,7 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 object RetrofitClient {
-    private const val BASE_URL = "http://rosales-loyalty.uaeftt-ute.site/" 
+    private const val BASE_URL = "http://rosales-loyalty.uaeftt-ute.site/api/"
     
     private var token: String? = null
 

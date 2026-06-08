@@ -71,8 +71,10 @@ class AuthController : ViewModel() {
                 val response = RetrofitClient.authRoutes.register(finalRequest)
                 if (response.isSuccessful) {
                     val auth = response.body()
-                    auth?.access?.let { RetrofitClient.setToken(it) }
-                    onSuccess()
+                    auth?.access?.let { 
+                        RetrofitClient.setToken(it)
+                        fetchMe(onSuccess)
+                    } ?: onSuccess()
                 } else {
                     val errorBody = response.errorBody()?.string()
                     _error.value = "Error: ${errorBody ?: "Datos inválidos o usuario ya existe"}"

@@ -50,25 +50,30 @@ fun AdminScreen(
             )
         }
     ) { padding ->
-        Column(modifier = Modifier.padding(padding)) {
-            SecondaryTabRow(
-                selectedTabIndex = currentTab,
-                containerColor = MaterialTheme.colorScheme.background,
-                contentColor = MaterialTheme.colorScheme.primary
-            ) {
-                tabs.forEachIndexed { index, title ->
-                    Tab(
-                        selected = currentTab == index,
-                        onClick = { currentTab = index },
-                        text = { Text(title, fontWeight = FontWeight.Bold) }
-                    )
+        Surface(
+            modifier = Modifier.fillMaxSize().padding(padding),
+            color = MaterialTheme.colorScheme.background
+        ) {
+            Column {
+                SecondaryTabRow(
+                    selectedTabIndex = currentTab,
+                    containerColor = MaterialTheme.colorScheme.background,
+                    contentColor = MaterialTheme.colorScheme.primary
+                ) {
+                    tabs.forEachIndexed { index, title ->
+                        Tab(
+                            selected = currentTab == index,
+                            onClick = { currentTab = index },
+                            text = { Text(title, fontWeight = FontWeight.Bold) }
+                        )
+                    }
                 }
-            }
 
-            when (currentTab) {
-                0 -> AdminCatalogoTab(adminController)
-                1 -> AdminDevolucionesTab(adminController)
-                2 -> Text("Historial Global de Ventas", modifier = Modifier.padding(16.dp))
+                when (currentTab) {
+                    0 -> AdminCatalogoTab(adminController)
+                    1 -> AdminDevolucionesTab(adminController)
+                    2 -> Text("Historial Global de Ventas", modifier = Modifier.padding(16.dp))
+                }
             }
         }
     }

@@ -7,6 +7,8 @@ data class Compra(
     val total: Double,
     @SerializedName("metodo_pago") val metodoPago: String,
     @SerializedName("fecha_compra") val fechaCompra: String,
+    val estado: String? = "en local", 
+    val direccion: String? = null,
     val items: List<CompraItem>?
 )
 
@@ -20,6 +22,7 @@ data class CompraItem(
 
 data class CompraRequest(
     @SerializedName("metodo_pago") val metodoPago: String,
-    val total: Double
-    // Add items if backend supports creation with items in one go
+    val total: Double,
+    val direccion: String? = null,
+    val estado: String = "en local"
 )
