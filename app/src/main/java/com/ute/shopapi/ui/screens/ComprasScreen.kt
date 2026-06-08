@@ -12,6 +12,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.LocalShipping
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -26,6 +27,7 @@ import com.ute.shopapi.data.model.Compra
 @Composable
 fun ComprasScreen(
     onNavigateBack: () -> Unit,
+    onNavigateToTienda: () -> Unit,
     controller: ComprasController
 ) {
     val compras by controller.compras.collectAsState()
@@ -58,13 +60,36 @@ fun ComprasScreen(
                 }
             } else if (compras.isEmpty()) {
                 Column(
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier.fillMaxSize().padding(32.dp),
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Text("Aún no has realizado compras.", color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f))
-                    Spacer(Modifier.height(16.dp))
-                    Text("¡Explora la tienda y empieza a ganar!", style = MaterialTheme.typography.bodySmall)
+                    Icon(
+                        Icons.Default.ShoppingCart, 
+                        contentDescription = null, 
+                        modifier = Modifier.size(100.dp),
+                        tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
+                    )
+                    Spacer(Modifier.height(24.dp))
+                    Text(
+                        "Aún no tienes compras", 
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(Modifier.height(8.dp))
+                    Text(
+                        "¡Parece que aún no has pedido nada! Explora nuestra tienda y encuentra lo que necesitas.", 
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                    )
+                    Spacer(Modifier.height(32.dp))
+                    Button(
+                        onClick = onNavigateToTienda,
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier.fillMaxWidth().height(56.dp)
+                    ) {
+                        Text("IR A LA TIENDA", fontWeight = FontWeight.Bold)
+                    }
                 }
             } else {
                 LazyColumn(

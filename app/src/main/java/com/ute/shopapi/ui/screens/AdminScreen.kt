@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.ute.shopapi.data.controller.AdminController
 import com.ute.shopapi.data.model.Recompensa
+import com.ute.shopapi.data.remote.PartialRecompensa
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -85,7 +86,8 @@ fun AdminCatalogoTab(controller: AdminController) {
     val pagination by controller.pagination.collectAsState()
     val error by controller.error.collectAsState()
     val isLoading by controller.isLoading.collectAsState()
-    var showAddDialog by remember { mutableStateOf(false) }
+    var selectedRecompensa by remember { mutableStateOf<Recompensa?>(null) }
+    var showDialog by remember { mutableStateOf(false) }
     
     LaunchedEffect(Unit) { controller.fetchRecompensas() }
 
@@ -113,8 +115,14 @@ fun AdminCatalogoTab(controller: AdminController) {
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(item.nombre, fontWeight = FontWeight.Bold)
                                 Text("Stock: ${item.stock}", style = MaterialTheme.typography.bodySmall)
+                                Text("${item.puntosNecesarios} PTS", fontWeight = FontWeight.ExtraBold, color = MaterialTheme.colorScheme.primary)
                             }
-                            Text("${item.puntosNecesarios} PTS", fontWeight = FontWeight.ExtraBold, color = MaterialTheme.colorScheme.primary)
+                            IconButton(onClick = { 
+                                selectedRecompensa = item
+                                showDialog = true
+                            }) {
+                                Icon(Icons.Default.Edit, contentDescription = "Editar", tint = MaterialTheme.colorScheme.primary)
+                            }
                         }
                     }
                 }
@@ -150,7 +158,10 @@ fun AdminCatalogoTab(controller: AdminController) {
         }
 
         FloatingActionButton(
-            onClick = { showAddDialog = true },
+            onClick = { 
+                selectedRecompensa = null
+                showDialog = true 
+            },
             modifier = Modifier.align(Alignment.BottomEnd).padding(24.dp),
             containerColor = MaterialTheme.colorScheme.primary
         ) {
@@ -158,14 +169,13 @@ fun AdminCatalogoTab(controller: AdminController) {
         }
     }
 
-    if (showAddDialog) {
-        AddRewardDialog(
+    if (showDialog) {
+        RewardFormDialog(
+            recompensa = selectedRecompensa,
             controller = controller,
-            onDismiss = { showAddDialog = false },
-            onConfirm = { newItem ->
-                controller.createRecompensa(newItem) {
-                    showAddDialog = false
-                }
+            onDismiss = { showDialog = false },
+            onConfirm = { 
+                showDialog = false
             }
         )
     }
@@ -173,11 +183,17 @@ fun AdminCatalogoTab(controller: AdminController) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddRewardDialog(onDismiss: () -> Unit, onConfirm: (Recompensa) -> Unit, controller: AdminController) {
-    var nombre by remember { mutableStateOf("") }
-    var descripcion by remember { mutableStateOf("") }
-    var puntos by remember { mutableStateOf("") }
-    var stock by remember { mutableStateOf("") }
+fun RewardFormDialog(
+    recompensa: Recompensa? = null,
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit,
+    controller: AdminController
+) {
+    var nombre by remember { mutableStateOf(recompensa?.nombre ?: "") }
+    var descripcion by remember { mutableStateOf(recompensa?.descripcion ?: "") }
+    var puntos by remember { mutableStateOf(recompensa?.puntosNecesarios?.toString() ?: "") }
+    var stock by remember { mutableStateOf(recompensa?.stock?.toString() ?: "") }
+    var estado by remember { mutableStateOf(recompensa?.estado ?: "activo") }
     
     val error by controller.error.collectAsState()
     val isLoading by controller.isLoading.collectAsState()
@@ -191,7 +207,11 @@ fun AddRewardDialog(onDismiss: () -> Unit, onConfirm: (Recompensa) -> Unit, cont
                 modifier = Modifier.padding(24.dp).verticalScroll(rememberScrollState()),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text("NUEVA RECOMPENSA", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Black)
+                Text(
+                    if (recompensa == null) "NUEVA RECOMPENSA" else "EDITAR RECOMPENSA",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Black
+                )
                 
                 error?.let {
                     Text(it, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(vertical = 8.dp), style = MaterialTheme.typography.bodySmall)
@@ -209,26 +229,55 @@ fun AddRewardDialog(onDismiss: () -> Unit, onConfirm: (Recompensa) -> Unit, cont
                 Spacer(modifier = Modifier.height(8.dp))
                 
                 OutlinedTextField(value = stock, onValueChange = { stock = it }, label = { Text("STOCK") }, modifier = Modifier.fillMaxWidth())
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Estado selector
+                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
+                    Text("ESTADO: ", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelLarge)
+                    Spacer(Modifier.width(8.dp))
+                    FilterChip(
+                        selected = estado == "activo",
+                        onClick = { estado = "activo" },
+                        label = { Text("ACTIVO") }
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    FilterChip(
+                        selected = estado == "inactivo",
+                        onClick = { estado = "inactivo" },
+                        label = { Text("INACTIVO") }
+                    )
+                }
                 
                 Spacer(modifier = Modifier.height(32.dp))
 
                 Button(
                     onClick = {
-                        val r = Recompensa(
-                            id = 0,
-                            nombre = nombre,
-                            descripcion = descripcion,
-                            puntosNecesarios = puntos.toDoubleOrNull()?.toInt() ?: 0,
-                            stock = stock.toDoubleOrNull()?.toInt() ?: 0,
-                            estado = "activo"
-                        )
-                        onConfirm(r)
+                        if (recompensa == null) {
+                            val r = Recompensa(
+                                id = 0,
+                                nombre = nombre,
+                                descripcion = descripcion,
+                                puntosNecesarios = puntos.toDoubleOrNull()?.toInt() ?: 0,
+                                stock = stock.toDoubleOrNull()?.toInt() ?: 0,
+                                estado = estado
+                            )
+                            controller.createRecompensa(r, onConfirm)
+                        } else {
+                            val pr = PartialRecompensa(
+                                nombre = nombre,
+                                descripcion = descripcion,
+                                puntosNecesarios = puntos.toDoubleOrNull()?.toInt(),
+                                stock = stock.toDoubleOrNull()?.toInt(),
+                                estado = estado
+                            )
+                            controller.updateRecompensa(recompensa.id, pr, onConfirm)
+                        }
                     },
                     modifier = Modifier.fillMaxWidth().height(56.dp),
                     enabled = !isLoading
                 ) {
                     if (isLoading) CircularProgressIndicator(modifier = Modifier.size(24.dp), color = Color.White)
-                    else Text("GUARDAR RECOMPENSA", fontWeight = FontWeight.Bold)
+                    else Text("GUARDAR CAMBIOS", fontWeight = FontWeight.Bold)
                 }
                 
                 TextButton(onClick = onDismiss, modifier = Modifier.fillMaxWidth(), enabled = !isLoading) {

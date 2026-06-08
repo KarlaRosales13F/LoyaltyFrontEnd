@@ -1,5 +1,6 @@
 package com.ute.shopapi.data.remote
 
+import com.google.gson.annotations.SerializedName
 import com.ute.shopapi.data.model.*
 import retrofit2.Response
 import retrofit2.http.*
@@ -50,8 +51,11 @@ interface RecompensasRoutes {
 }
 
 data class PartialRecompensa(
+    val nombre: String? = null,
+    val descripcion: String? = null,
+    @SerializedName("puntos_necesarios") val puntosNecesarios: Int? = null,
     val stock: Int? = null,
-    val estado: Boolean? = null,
+    val estado: String? = null,
 )
 
 interface ProductosRoutes {

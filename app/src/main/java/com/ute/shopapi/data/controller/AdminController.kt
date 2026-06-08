@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ute.shopapi.data.model.*
 import com.ute.shopapi.data.remote.RetrofitClient
+import com.ute.shopapi.data.remote.PartialRecompensa
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -97,6 +98,27 @@ class AdminController : ViewModel() {
                 } else {
                     val errorBody = response.errorBody()?.string()
                     _error.value = "Error del servidor: ${errorBody ?: response.code()}"
+                }
+            } catch (e: Exception) {
+                _error.value = "Error de conexión: ${e.localizedMessage}"
+            } finally {
+                _isLoading.value = false
+            }
+        }
+    }
+
+    fun updateRecompensa(id: Int, recompensa: PartialRecompensa, onSuccess: () -> Unit) {
+        viewModelScope.launch {
+            _isLoading.value = true
+            _error.value = null
+            try {
+                val response = RetrofitClient.recompensasRoutes.updateRecompensa(id, recompensa)
+                if (response.isSuccessful) {
+                    fetchRecompensas()
+                    onSuccess()
+                } else {
+                    val errorBody = response.errorBody()?.string()
+                    _error.value = "Error al actualizar: ${errorBody ?: response.code()}"
                 }
             } catch (e: Exception) {
                 _error.value = "Error de conexión: ${e.localizedMessage}"

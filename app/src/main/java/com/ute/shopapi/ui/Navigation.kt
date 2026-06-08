@@ -87,6 +87,7 @@ fun AppNavigation(
         composable("compras") {
             ComprasScreen(
                 onNavigateBack = { navController.popBackStack() },
+                onNavigateToTienda = { navController.navigate("tienda") },
                 controller = comprasController
             )
         }
